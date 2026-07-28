@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>نتيجة الثانوية العامة | بوابة النتيجة</title>
+<meta name="description" content="ابحث عن نتيجة الثانوية العامة بالاسم أو رقم الجلوس - نظام حديث وقديم">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink-950:#080d18;
+    --ink-900:#0c1424;
+    --ink-800:#121b30;
+    --ink-700:#1a2540;
+    --line:#25324f;
+    --gold:#d8b46a;
+    --gold-soft:#f0dba8;
+    --teal:#2fd7c4;
+    --green:#3fd68f;
+    --red:#f4685f;
+    --amber:#f2b544;
+    --text:#eef1f8;
+    --muted:#93a0bd;
+    --muted-2:#5f6d8c;
+    --radius:18px;
+    --font-display:'Cairo',sans-serif;
+    --font-body:'Tajawal',sans-serif;
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-l:env(safe-area-inset-left,0px);
+    --safe-r:env(safe-area-inset-right,0px);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;min-width:0;}
+  html{scroll-behavior:smooth;overflow-x:hidden;width:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    width:100%;
+    background:var(--ink-950);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    position:relative;
+    padding-left:var(--safe-l);
+    padding-right:var(--safe-r);
+  }
+  img,svg{max-width:100%;display:block;}
+
+  /* ---------- ambient background (vmin-based so it never balloons on ultra-wide/odd aspect screens) ---------- */
+  .bg-fx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .bg-fx .glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;}
+  .bg-fx .g1{width:clamp(260px,60vmin,560px);height:clamp(260px,60vmin,560px);background:radial-gradient(circle,var(--teal),transparent 70%);top:-18vmin;right:-14vmin;animation:drift1 22s ease-in-out infinite;}
+  .bg-fx .g2{width:clamp(220px,50vmin,480px);height:clamp(220px,50vmin,480px);background:radial-gradient(circle,var(--gold),transparent 70%);bottom:-16vmin;left:-12vmin;opacity:.25;animation:drift2 26s ease-in-out infinite;}
+  .bg-fx .grid-overlay{
+    position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:48px 48px;
+    opacity:.12;
+    -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 10%, #000 20%, transparent 75%);
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 10%, #000 20%, transparent 75%);
+  }
+  @keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(-4%,4%)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(4%,-3%)}}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;z-index:1;text-align:center;padding:calc(40px + var(--safe-t)) 16px 20px;}
+  .stamp-wrap{width:clamp(80px,22vw,112px);height:clamp(80px,22vw,112px);margin:0 auto 16px;position:relative;}
+  .stamp-wrap svg{width:100%;height:100%;overflow:visible;}
+  .stamp-ring{transform-origin:60px 60px;animation:spin 16s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stamp-core{animation:pulseCore 3.2s ease-in-out infinite;transform-origin:60px 60px;}
+  @keyframes pulseCore{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+  .hero h1{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(26px,7vw,48px);
+    margin:0 0 10px;
+    letter-spacing:-.5px;
+    line-height:1.2;
+  }
+  .hero h1 span{
+    background:linear-gradient(90deg,var(--gold-soft),var(--teal));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero .subtitle{
+    max-width:520px;margin:0 auto;color:var(--muted);
+    font-size:clamp(13.5px,3vw,16.5px);line-height:1.8;
+    padding:0 4px;
+  }
+
+  /* ---------- layout ---------- */
+  .container{position:relative;z-index:1;max-width:760px;width:100%;margin:0 auto;padding:20px 16px calc(50px + var(--safe-b));}
+
+  .search-card{
+    background:linear-gradient(180deg,rgba(26,37,64,.75),rgba(18,27,48,.65));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 20px 60px -30px rgba(0,0,0,.7);
+    width:100%;
+  }
+
+  .scope-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{
+    flex:1 1 auto;min-width:0;
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    font-family:var(--font-body);font-weight:500;font-size:13px;
+    padding:9px 8px;border-radius:999px;cursor:pointer;white-space:nowrap;
+    transition:.25s ease;
+  }
+  .tab:hover{border-color:var(--teal);color:var(--text);}
+  .tab.active{
+    background:linear-gradient(90deg,var(--teal),#1fb9a8);
+    border-color:transparent;color:#04211d;font-weight:700;
+  }
+
+  .search-row{display:flex;gap:10px;width:100%;}
+  #searchInput{
+    flex:1 1 auto;min-width:0;width:100%;
+    background:var(--ink-900);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:16px;
+    padding:14px 16px;
+    border-radius:14px;
+    outline:none;
+    transition:.2s ease;
+  }
+  #searchInput::placeholder{color:var(--muted-2);}
+  #searchInput:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,180,106,.15);}
+
+  #searchBtn{
+    width:52px;flex:0 0 52px;
+    background:linear-gradient(135deg,var(--gold),#b8874a);
+    border:none;border-radius:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .15s ease;
+  }
+  #searchBtn:hover{transform:translateY(-1px);}
+  #searchBtn:active{transform:translateY(0);}
+  #searchBtn svg{width:20px;height:20px;stroke:#221202;}
+
+  .meta-row{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:14px;flex-wrap:wrap;gap:8px;
+    font-size:12px;color:var(--muted-2);
+  }
+  #statusText{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:4px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);flex:0 0 7px;}
+  .dot.ok{background:var(--green);}
+  .dot.err{background:var(--red);}
+  .dot.loading{background:var(--amber);animation:blink 1s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .progress-track{
+    width:100%;height:5px;border-radius:4px;background:var(--ink-900);
+    overflow:hidden;margin-top:10px;border:1px solid var(--line);
+  }
+  .progress-track.hidden{display:none;}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .25s ease;}
+
+  #manualUploadToggle{
+    background:none;border:none;color:var(--teal);cursor:pointer;
+    font-family:var(--font-body);font-size:12px;text-decoration:underline;
+    text-underline-offset:3px;padding:0;
+  }
+
+  .upload-panel{
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);
+    display:grid;gap:10px;grid-template-columns:1fr 1fr;
+  }
+  .upload-panel.hidden{display:none;}
+  .upload-panel label{
+    font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;min-width:0;
+  }
+  .upload-panel input[type=file]{
+    font-size:12px;color:var(--muted);max-width:100%;
+    background:var(--ink-900);border:1px solid var(--line);border-radius:10px;padding:8px;
+  }
+  @media(max-width:480px){.upload-panel{grid-template-columns:1fr;}}
+
+  /* ---------- results ---------- */
+  .results-section{margin-top:24px;display:flex;flex-direction:column;gap:14px;width:100%;}
+
+  .hint-card{
+    text-align:center;color:var(--muted-2);font-size:13.5px;
+    padding:30px 18px;border:1px dashed var(--line);border-radius:var(--radius);
+    line-height:1.9;
+  }
+  .hint-card b{color:var(--muted);}
+
+  .result-count{font-size:12px;color:var(--muted-2);padding:0 4px;}
+
+  .r-card{
+    position:relative;
+    background:linear-gradient(180deg,rgba(26,37,64,.7),rgba(18,27,48,.55));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 18px 16px 14px;
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(14px);
+    animation:cardIn .5s ease forwards;
+    width:100%;
+  }
+  @keyframes cardIn{to{opacity:1;transform:translateY(0);}}
+
+  .r-card::before{
+    content:'';position:absolute;top:0;bottom:0;right:0;width:4px;
+    background:var(--accent,var(--muted-2));
+  }
+  .r-card.status-pass{--accent:var(--green);}
+  .r-card.status-fail{--accent:var(--red);}
+  .r-card.status-second{--accent:var(--amber);}
+  .r-card.status-absent{--accent:var(--muted-2);}
+  .r-card.status-neutral{--accent:var(--gold);}
+
+  .r-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .r-name{font-family:var(--font-display);font-weight:800;font-size:16.5px;color:var(--text);overflow-wrap:anywhere;}
+  .r-badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .badge{
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap;
+  }
+  .badge.system-modern{background:rgba(47,215,196,.15);color:var(--teal);}
+  .badge.system-old{background:rgba(216,180,106,.15);color:var(--gold-soft);}
+  .badge.stamp{
+    background:rgba(255,255,255,.06);color:var(--text);
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .badge.stamp.status-pass{color:var(--green);}
+  .badge.stamp.status-fail{color:var(--red);}
+  .badge.stamp.status-second{color:var(--amber);}
+  .badge.stamp.status-absent{color:var(--muted);}
+
+  .r-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:10px 16px;margin-top:6px;
+  }
+  .r-field dt{font-size:11px;color:var(--muted-2);margin-bottom:3px;}
+  .r-field dd{margin:0;font-size:14px;color:var(--text);font-weight:600;font-family:var(--font-display);overflow-wrap:anywhere;}
+  .r-field{display:block;min-width:0;}
+
+  .r-sheet-tag{font-size:11px;color:var(--muted-2);margin-top:8px;}
+
+  footer.site-footer{
+    position:relative;z-index:1;text-align:center;
+    padding:16px 16px calc(28px + var(--safe-b));
+    font-size:13px;color:var(--muted-2);
+  }
+  footer.site-footer a{color:var(--gold-soft);text-decoration:none;font-weight:700;}
+  footer.site-footer a:hover{text-decoration:underline;}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-fx" aria-hidden="true">
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<header class="hero">
+  <div class="stamp-wrap" aria-hidden="true">
+    <svg viewBox="0 0 120 120">
+      <g class="stamp-ring">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#d8b46a" stroke-width="2" stroke-dasharray="4 6" opacity=".7"/>
+      </g>
+      <circle cx="60" cy="60" r="40" fill="none" stroke="#2fd7c4" stroke-width="1.4" opacity=".55"/>
+      <g class="stamp-core">
+        <circle cx="60" cy="60" r="27" fill="#101a30" stroke="#f0dba8" stroke-width="1.5"/>
+        <path d="M48 61 L57 70 L74 51" fill="none" stroke="#3fd68f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </svg>
+  </div>
+  <h1>نتيجة <span>الثانوية العامة</span></h1>
+  <p class="subtitle">اكتب اسمك أو رقم جلوسك، وهنجيبلك النتيجة فورًا من نظامَي الثانوية الحديث والقديم</p>
+</header>
+
+<main class="container">
+
+  <section class="search-card">
+    <div class="scope-tabs" role="tablist" aria-label="نطاق البحث">
+      <button class="tab active" data-scope="all" type="button">الكل</button>
+      <button class="tab" data-scope="modern" type="button">نظام حديث</button>
+      <button class="tab" data-scope="old" type="button">نظام قديم</button>
+    </div>
+
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="اكتب الاسم أو رقم الجلوس..." autocomplete="off" inputmode="search" />
+      <button id="searchBtn" type="button" aria-label="بحث">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+
+    <div class="meta-row">
+      <span id="statusText"><span class="dot loading" id="statusDot"></span> جارِ تحميل بيانات النتيجة...</span>
+      <button id="manualUploadToggle" type="button">رفع الملفات يدويًا</button>
+    </div>
+
+    <div class="progress-track hidden" id="progressTrack">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="upload-panel hidden" id="manualUploadPanel">
+      <label>ملفات النظام الحديث (يمكن اختيار الجزءين مع بعض)
+        <input type="file" id="fileModern" accept=".xlsx,.xls" multiple />
+      </label>
+      <label>ملف النظام القديم
+        <input type="file" id="fileOld" accept=".xlsx,.xls" multiple />
+      </label>
+    </div>
+  </section>
+
+  <section class="results-section" id="resultsSection" aria-live="polite">
+    <div class="hint-card" id="hintCard">
+      اكتب <b>الاسم</b> أو <b>رقم الجلوس</b> في الخانة اللي فوق وهيظهرلك هنا كل التفاصيل.
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>تم الصنع بواسطة <a href="https://abanoub-saad-boles-063.github.io/Abanoub-Saad-Boles-063/web.html" target="_blank" rel="noopener">أبانوب سعد بولس</a></p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ======= CONFIG: عدّل الأسماء هنا فقط لو غيّرت اسم ملفات الإكسل في المستودع =======
+  const FILES = [
+    { key:'modern', label:'نظام حديث', paths:[
+        'نتيجة ثانوية عامة نظام حديث - جزء 1.xlsx',
+        'نتيجة ثانوية عامة نظام حديث - جزء 2.xlsx'
+      ] },
+    { key:'old', label:'نظام قديم', paths:[
+        'نتيجة ثانوية عامة نظام قديم.xlsx'
+      ] }
+  ];
+
+  // شنط بيانات منفصلة لكل نظام (Structure-of-Arrays) بدل ملايين الكائنات الصغيرة - أخف على الذاكرة مع ملف الـ900 ألف صف
+  let store = {
+    modern:{ seating:[], name:[], nameNorm:[], degree:[], desc:[], statusClass:[] },
+    old:{ seating:[], name:[], nameNorm:[], degree:[], desc:[], statusClass:[] }
+  };
+  let totalCount = 0;
+  let loadState = { modern:'pending', old:'pending' };
+  let currentScope = 'all';
+
+  const $ = (sel)=>document.querySelector(sel);
+  const statusText = $('#statusText');
+  const resultsSection = $('#resultsSection');
+  const hintCard = $('#hintCard');
+  const progressTrack = $('#progressTrack');
+  const progressFill = $('#progressFill');
+
+  // ---------- normalize Arabic text for forgiving search ----------
+  function normalizeAr(str){
+    if(str===undefined||str===null) return '';
+    return String(str)
+      .replace(/[\u064B-\u065F\u0610-\u061A\u06D6-\u06ED\u0670]/g,'') // تشكيل
+      .replace(/\u0640/g,'') // تطويل
+      .replace(/[إأآا]/g,'ا')
+      .replace(/ى/g,'ي')
+      .replace(/ؤ/g,'و')
+      .replace(/ئ/g,'ي')
+      .replace(/ة/g,'ه')
+      .replace(/ء/g,'')
+      .replace(/[^\u0621-\u064A0-9a-zA-Z\s]/g,'')
+      .replace(/\s+/g,' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function detectStatusClass(desc){
+    if(!desc) return 'status-neutral';
+    if(/غياب/.test(desc)) return 'status-absent';
+    if(/راسب/.test(desc)) return 'status-fail';
+    if(/دور\s*ثان/.test(desc)) return 'status-second';
+    if(/ناجح/.test(desc)) return 'status-pass';
+    return 'status-neutral';
+  }
+  function statusLabel(cls){
+    return {
+      'status-pass':'ناجح','status-fail':'راسب','status-second':'دور ثانٍ',
+      'status-absent':'غياب','status-neutral':'مسجّل'
+    }[cls] || 'مسجّل';
+  }
+  function fmtDegree(n){
+    if(n===''||n===undefined||n===null) return '';
+    const num = typeof n==='number' ? n : parseFloat(String(n).replace('٫','.'));
+    if(isNaN(num)) return String(n);
+    return Number.isInteger(num) ? String(num) : num.toFixed(1);
+  }
+
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+  function nextPaint(){ return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); }
+
+  // ---------- parse a workbook into the SoA store, in chunks so the UI thread stays responsive ----------
+  async function ingestWorkbook(wb, sysKey){
+    const bucket = store[sysKey];
+    let count = 0;
+    for(const sheetName of wb.SheetNames){
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:'' });
+      if(rows.length < 2) continue;
+      const headers = rows[0].map(h=>String(h||''));
+      const seatIdx = headers.findIndex(h=>/seat|جلوس/i.test(h));
+      const nameIdx = headers.findIndex(h=>/name|اسم/i.test(h));
+      const degIdx  = headers.findIndex(h=>/degree|total|درجه|مجموع/i.test(h));
+      const descIdx = headers.findIndex(h=>/desc|نتيجه|النتيجه/i.test(h));
+
+      const CHUNK = 20000;
+      for(let start=1; start<rows.length; start+=CHUNK){
+        const end = Math.min(start+CHUNK, rows.length);
+        for(let i=start;i<end;i++){
+          const row = rows[i];
+          const seatingVal = seatIdx>=0 ? String(row[seatIdx]??'').trim() : '';
+          const nameVal = nameIdx>=0 ? String(row[nameIdx]??'').trim() : '';
+          if(!seatingVal && !nameVal) continue;
+          const descVal = descIdx>=0 ? String(row[descIdx]??'').trim() : '';
+
+          bucket.seating.push(seatingVal);
+          bucket.name.push(nameVal);
+          bucket.nameNorm.push(normalizeAr(nameVal));
+          bucket.degree.push(degIdx>=0 ? row[degIdx] : '');
+          bucket.desc.push(descVal);
+          bucket.statusClass.push(detectStatusClass(descVal));
+          count++;
+        }
+        // اسمح للمتصفح يلحق يرسم/يستجيب قبل ما يكمل الشنطة اللي بعدها (مهم في الملفات الكبيرة على الموبايل)
+        await sleep(0);
+      }
+    }
+    return count;
+  }
+
+  function updateStatusText(extra){
+    const parts = FILES.map(f=>{
+      const s = loadState[f.key];
+      const cls = s==='ok' ? 'ok' : (s==='error' ? 'err' : (s==='partial' ? 'err' : 'loading'));
+      const txt = s==='ok' ? 'تم التحميل' : (s==='error' ? 'تعذّر التحميل' : (s==='partial' ? 'تحميل جزئي' : (extra||'جارِ التحميل...')));
+      return `<span class="dot ${cls}"></span> ${f.label}: ${txt}`;
+    });
+    statusText.innerHTML = parts.join(' &nbsp;|&nbsp; ');
+  }
+
+  async function fetchWithProgress(url){
+    const res = await fetch(encodeURI(url));
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const total = parseInt(res.headers.get('content-length')||'0',10);
+    if(!res.body || !total){
+      progressTrack.classList.add('hidden');
+      return await res.arrayBuffer();
+    }
+    progressTrack.classList.remove('hidden');
+    const reader = res.body.getReader();
+    let received = 0;
+    const chunks = [];
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      chunks.push(value);
+      received += value.length;
+      progressFill.style.width = Math.min(100, Math.round(received/total*100)) + '%';
+    }
+    progressTrack.classList.add('hidden');
+    const buf = new Uint8Array(received);
+    let offset = 0;
+    for(const c of chunks){ buf.set(c, offset); offset += c.length; }
+    return buf.buffer;
+  }
+
+  async function loadAuto(){
+    updateStatusText();
+    for(const f of FILES){
+      let sysOk = false;
+      let sysHadError = false;
+      const multi = f.paths.length > 1;
+      for(let p=0; p<f.paths.length; p++){
+        const path = f.paths[p];
+        const partTag = multi ? ` (جزء ${p+1}/${f.paths.length})` : '';
+        try{
+          progressFill.style.width = '0%';
+          updateStatusText('جارِ التحميل'+partTag+'...');
+          const buf = await fetchWithProgress(path);
+          updateStatusText('جارِ معالجة البيانات'+partTag+'...');
+          await nextPaint();
+          const wb = XLSX.read(buf, { type:'array' });
+          const n = await ingestWorkbook(wb, f.key);
+          totalCount += n;
+          if(n>0) sysOk = true;
+        }catch(err){
+          sysHadError = true;
+          console.warn('تعذر تحميل', path, err);
+        }
+        updateStatusText();
+      }
+      loadState[f.key] = sysOk ? (sysHadError ? 'partial' : 'ok') : 'error';
+    }
+    if(Object.values(loadState).some(s=>s==='error'||s==='partial')){
+      $('#manualUploadPanel').classList.remove('hidden');
+    }
+    finalizeStatusBanner();
+  }
+
+  function finalizeStatusBanner(){
+    const failed = Object.values(loadState).filter(s=>s==='error'||s==='partial').length;
+    if(totalCount>0){
+      statusText.innerHTML = `<span class="dot ok"></span> تم تحميل ${totalCount.toLocaleString('en-US')} سجل من ${FILES.length-failed} من ${FILES.length} نظام`+
+        (failed? ` <span style="color:var(--red)">— تعذر تحميل ${failed} نظام كامل تلقائيًا، تأكد من رفع كل الأجزاء أو ارفعها يدويًا</span>` : '');
+    } else {
+      statusText.innerHTML = `<span class="dot err"></span> لم يتم العثور على ملفات النتيجة تلقائيًا — من فضلك ارفعها يدويًا بالأسفل`;
+    }
+  }
+
+  // ---------- manual upload fallback ----------
+  function wireManualUpload(){
+    $('#manualUploadToggle').addEventListener('click', ()=>{
+      $('#manualUploadPanel').classList.toggle('hidden');
+    });
+    const handlers = { fileModern:'modern', fileOld:'old' };
+
+    function readFileAsArrayBuffer(file){
+      return new Promise((resolve,reject)=>{
+        const reader = new FileReader();
+        reader.onload = ev=>resolve(ev.target.result);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    Object.keys(handlers).forEach(inputId=>{
+      const sysKey = handlers[inputId];
+      document.getElementById(inputId).addEventListener('change', async function(e){
+        const files = Array.from(e.target.files || []);
+        if(!files.length) return;
+        try{
+          // استبدال بيانات النظام ده لو كانت موجودة قبل كده (ممكن يرفع كل الأجزاء دفعة واحدة)
+          totalCount -= store[sysKey].seating.length;
+          store[sysKey] = { seating:[], name:[], nameNorm:[], degree:[], desc:[], statusClass:[] };
+          let n = 0;
+          for(let i=0;i<files.length;i++){
+            updateStatusText(`جارِ معالجة الملف المرفوع (${i+1}/${files.length})...`);
+            await nextPaint();
+            const buf = await readFileAsArrayBuffer(files[i]);
+            const wb = XLSX.read(buf, { type:'array' });
+            n += await ingestWorkbook(wb, sysKey);
+          }
+          totalCount += n;
+          loadState[sysKey] = n>0 ? 'ok' : 'error';
+          finalizeStatusBanner();
+        }catch(err){
+          alert('حدث خطأ أثناء قراءة أحد الملفات، تأكد إنها ملفات إكسل صحيحة.');
+        }
+      });
+    });
+  }
+
+  // ---------- search ----------
+  function searchSystem(sysKey, sysLabel, raw, isNumeric){
+    const bucket = store[sysKey];
+    const n = bucket.seating.length;
+    const out = [];
+    if(isNumeric){
+      for(let i=0;i<n;i++){
+        if(bucket.seating[i].includes(raw)){
+          out.push(buildResult(sysKey, sysLabel, bucket, i));
+        }
+      }
+    } else {
+      const qWords = normalizeAr(raw).split(' ').filter(Boolean);
+      for(let i=0;i<n;i++){
+        const nm = bucket.nameNorm[i];
+        let ok = true;
+        for(let w=0; w<qWords.length; w++){ if(!nm.includes(qWords[w])){ ok=false; break; } }
+        if(ok) out.push(buildResult(sysKey, sysLabel, bucket, i));
+      }
+    }
+    return out;
+  }
+
+  function buildResult(sysKey, sysLabel, bucket, i){
+    return {
+      system: sysKey, systemLabel: sysLabel,
+      name: bucket.name[i], nameNorm: bucket.nameNorm[i],
+      seating: bucket.seating[i], degree: bucket.degree[i], desc: bucket.desc[i],
+      statusClass: bucket.statusClass[i]
+    };
+  }
+
+  function doSearch(){
+    const raw = $('#searchInput').value.trim();
+    if(!raw){
+      resultsSection.innerHTML = '';
+      resultsSection.appendChild(hintCard);
+      return;
+    }
+
+    const isNumeric = /^\d+$/.test(raw);
+    let matches = [];
+    if(currentScope==='all' || currentScope==='modern') matches = matches.concat(searchSystem('modern','نظام حديث', raw, isNumeric));
+    if(currentScope==='all' || currentScope==='old') matches = matches.concat(searchSystem('old','نظام قديم', raw, isNumeric));
+
+    if(!isNumeric){
+      matches.sort((a,b)=> a.nameNorm.length - b.nameNorm.length);
+    }
+
+    renderResults(matches, raw);
+  }
+
+  function renderResults(matches, query){
+    resultsSection.innerHTML = '';
+
+    if(matches.length===0){
+      const div = document.createElement('div');
+      div.className = 'hint-card';
+      div.innerHTML = `مفيش نتيجة مطابقة لـ <b>"${escapeHtml(query)}"</b>. تأكد من كتابة الاسم أو رقم الجلوس بشكل صحيح.`;
+      resultsSection.appendChild(div);
+      return;
+    }
+
+    const countEl = document.createElement('div');
+    countEl.className = 'result-count';
+    countEl.textContent = `عدد النتائج: ${matches.length.toLocaleString('en-US')}`;
+    resultsSection.appendChild(countEl);
+
+    const capped = matches.slice(0, 150);
+    const frag = document.createDocumentFragment();
+    capped.forEach((r,i)=> frag.appendChild(buildCard(r,i)));
+    resultsSection.appendChild(frag);
+
+    if(matches.length>capped.length){
+      const more = document.createElement('div');
+      more.className = 'result-count';
+      more.textContent = `+ ${(matches.length-capped.length).toLocaleString('en-US')} نتيجة أخرى، حاول تحديد البحث أكتر`;
+      resultsSection.appendChild(more);
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function buildCard(r, idx){
+    const card = document.createElement('article');
+    card.className = `r-card ${r.statusClass}`;
+    card.style.animationDelay = (idx*30)+'ms';
+
+    const sysBadgeClass = r.system==='modern' ? 'system-modern' : 'system-old';
+    const degreeStr = fmtDegree(r.degree);
+
+    card.innerHTML = `
+      <div class="r-top">
+        <div class="r-name">${escapeHtml(r.name || '—')}</div>
+        <div class="r-badges">
+          <span class="badge ${sysBadgeClass}">${escapeHtml(r.systemLabel)}</span>
+          <span class="badge stamp ${r.statusClass}">${escapeHtml(r.desc) || statusLabel(r.statusClass)}</span>
+        </div>
+      </div>
+      <div class="r-grid">
+        <div class="r-field"><dt>رقم الجلوس</dt><dd>${escapeHtml(r.seating || '—')}</dd></div>
+        ${degreeStr!=='' ? `<div class="r-field"><dt>مجموع الدرجات</dt><dd>${escapeHtml(degreeStr)}</dd></div>` : ''}
+      </div>
+    `;
+    return card;
+  }
+
+  // ---------- wire up UI ----------
+  function wireUI(){
+    $('#searchBtn').addEventListener('click', doSearch);
+    $('#searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(); });
+    let debounceT;
+    $('#searchInput').addEventListener('input', ()=>{
+      clearTimeout(debounceT);
+      debounceT = setTimeout(doSearch, 280);
+    });
+
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        currentScope = btn.dataset.scope;
+        if($('#searchInput').value.trim()) doSearch();
+      });
+    });
+
+    wireManualUpload();
+  }
+
+  wireUI();
+  loadAuto();
+
+})();
+</script>
+</body>
+</html>
