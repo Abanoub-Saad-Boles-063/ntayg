@@ -95,6 +95,29 @@
     font-size:clamp(13.5px,3vw,16.5px);line-height:1.8;
     padding:0 4px;
   }
+  .hero .subtitle-extra{
+    max-width:600px;margin:12px auto 0;color:var(--gold-soft);
+    font-size:clamp(12px,2.5vw,14px);line-height:1.8;
+    padding:0 4px;
+  }
+  .hero .subtitle-extra a{
+    color:var(--teal);
+    text-decoration:underline;
+    text-underline-offset:2px;
+    font-weight:600;
+  }
+  .hero .subtitle-extra .hint{
+    display:inline-block;
+    margin-top:0;
+    font-size:clamp(14px,2.8vw,18px);
+    font-weight:700;
+    color:var(--gold);
+    letter-spacing:2px;
+  }
+  .hero .subtitle-extra .hint a{
+    color:var(--teal);
+    text-decoration:underline;
+  }
 
   /* ---------- layout ---------- */
   .container{position:relative;z-index:1;max-width:760px;width:100%;margin:0 auto;padding:20px 16px calc(50px + var(--safe-b));}
@@ -389,7 +412,10 @@
     </svg>
   </div>
   <h1>نتيجة <span>الثانوية العامة</span></h1>
-  <p class="subtitle">اكتب رقم الجلوس أو الاسم وهنجيبلك النتيجة فورًا من قاعدة بيانات ١٫٧ مليون طالب</p>
+  <p class="subtitle">اكتب رقم الجلوس أو الاسم وهنجيبلك النتيجة فورًا</p>
+  <p class="subtitle-extra">
+    لو عايز نتيجتك بالدراجات فادوس على استلام عن النتيجه بالأسم واكتب اسمك و خد رقم جلوسك نسخ و حطه <span class="hint"><a href="https://pixel-perfect-render-858.lovable.app/" target="_blank" rel="noopener">هنـــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــا</a></span>.
+  </p>
 </header>
 
 <main class="container">
@@ -741,7 +767,7 @@
       rankHtml = `
         <div class="rank-row">
           <div class="rank-card${first ? ' is-first' : ''}">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0zM6 5H4a2 2 0 0 0 0 4h2m12-4h2a2 2 0 0 1 0 4h-2"/></svg>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h12M12 17v4M6 4h12v4a6 6 0 0 1-12 0zM6 5H4a2 2 0 0 0 0 4h2m12-4h2a2 2 0 0 1 0 4h-2"/></svg>
             <div>
               <span class="rank-label">الترتيب على مستوى الجمهورية</span>
               <span class="rank-value">${first ? '<b>الأول 🏅</b>' : '<b>' + r.rank.toLocaleString('ar-EG') + '</b>'} <small>من ${r.rankOf.toLocaleString('ar-EG')}</small></span>
